@@ -79,7 +79,7 @@ class SelectLevel(Board):
     Board.__init__(self)
     i = j = 0;
     while j*NCELLS + i < NLEVELS:
-      self.cells[j][i].set_active(True)
+      self.set_active(j, i, True)
       i = i + 1
       if i >= NCELLS:
         i = 0
@@ -134,6 +134,7 @@ def RenderText(screen, text, size, pos):
   screen.blit(font.render(text, True, (0,0,0)), pos)
 
 def LevelLoad(screen):
+  """Animation of the board"""
   board = Board()
   for row in board.cells:
     for cell in row:
@@ -142,6 +143,7 @@ def LevelLoad(screen):
       pygame.time.delay(50)
       cell.set_active(False)
       pygame.display.flip()
+  # Ignore events during the animation
   pygame.event.get()
 
 if __name__ == '__main__':
@@ -172,19 +174,18 @@ if __name__ == '__main__':
       if event.type == QUIT:
         running = False
       if event.type == MOUSEBUTTONDOWN:
-        if event.pos[1] < WIDTH and not select.selected:
-          x = int(math.floor(event.pos[1]/(WIDTH/NCELLS)))
-          y = int(math.floor(event.pos[0]/(WIDTH/NCELLS)))
-          board.change(x,y)
-        elif event.pos[1] < WIDTH and select.selected:
-          x = int(math.floor(event.pos[1]/(WIDTH/NCELLS)))
-          y = int(math.floor(event.pos[0]/(WIDTH/NCELLS)))
-          lvl = select_level.select(x,y)
-          if lvl > 0:
-            level_handler.set_level(lvl)
-            level_handler.read_level(board)
-            select.selected = False
-        elif event.pos[1] > WIDTH:
+        x = int(math.floor(event.pos[1]/(WIDTH/NCELLS)))
+        y = int(math.floor(event.pos[0]/(WIDTH/NCELLS)))
+        if event.pos[1] < WIDTH:
+          if not select.selected:
+            board.change(x,y)
+          elif select.selected:
+            lvl = select_level.select(x,y)
+            if lvl > 0:
+              level_handler.set_level(lvl)
+              level_handler.read_level(board)
+              select.selected = False
+        else:
           select.toggle()
 
     if board.empty():
